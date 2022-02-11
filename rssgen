@@ -1,0 +1,110 @@
+#!/usr/bin/env sh
+
+
+version() {
+	echo "rssgen v0.0.1"
+}
+
+usage() {
+	cat << EOF
+rssgen v0.0.1
+Usage: rssgen [options] [path]
+rssgen creates a RSS feed file for your project.
+Available options are:
+  -a 		set the domain
+  -c 		set copyright owner
+  -d 		set the description
+  -t 		set title field
+  -l 		set language field
+  -h		show this help
+  -v		print the version
+With no path given the default is ..
+Examples:
+  rssgen static/
+MIT License
+Copyright (c) 2021 Brian Mayer
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+EOF
+}
+
+builddate() {
+	# Mon, 06 Sep 2010 00:01:00 +0000
+	date +"%a, %d %b %Y %T %Z"
+}
+
+builditem() {
+	pubdate="$(grep '<meta name="revised"' $1 | sed -E 's/.*"(.*)">/\1/')"
+	title="$(grep '<title>' $1 | sed -E 's@.*<title>(.*)</title>@\1@')"
+	desc="$(grep '<meta name="description"' $1 | sed -E 's/.*"(.*)">/\1/')"
+
+	cat << EOF
+	<item>
+	<title>$title</title>
+	<description>$desc</description>
+	<link>https://$DOMAIN/$1</link>
+	<guid>https://$DOMAIN/$1</guid>
+	<pubDate>$pubdate</pubDate>
+	</item>
+EOF
+}
+
+# Command line options
+while getopts a:t:l:d:hv name
+do
+	case $name in
+	a) DOMAIN="${OPTARG}" ;;
+	c) COPY="${OPTARG}" ;;
+	d) DESC="${OPTARG}" ;;
+	t) TITLE="${OPTARG}" ;;
+	l) lang="${OPTARG}" ;;
+	h) usage && exit 0 ;;
+	v) version && exit 0 ;;
+	esac
+done
+
+shift $((OPTIND-1))
+path="$1"
+
+[ -z "$lang" ] && lang="en-us"
+[ -z "$DOMAIN" ] && DOMAIN="example.com"
+[ -z "$COPY" ] && COPY="$DOMAIN"
+[ -z "$DESC" ] && DESC="This is an example of an RSS feed"
+[ -z "$path" ] && path="."
+
+cat << EOF
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+<channel>
+ <title>$TITLE</title>
+ <description>$DESC</description>
+ <link>https://$DOMAIN</link>
+ <language>$lang</language>
+ <copyright>$(date +%Y) $COPY All rights reserved</copyright>
+ <lastBuildDate>$(builddate)</lastBuildDate>
+ <pubDate>$(builddate)</pubDate>
+ <ttl>1800</ttl>
+EOF
+
+for d in $(find $1 -type f -print)
+do
+	builditem "$d"
+done
+
+cat << EOF
+</channel>
+</rss>
+EOF

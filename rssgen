@@ -52,11 +52,11 @@ builditem() {
 
 	cat << EOF
 	<item>
-	<title>$title</title>
-	<description>$desc</description>
-	<link>https://$DOMAIN/$1</link>
-	<guid>https://$DOMAIN/$1</guid>
-	<pubDate>$pubdate</pubDate>
+		<title>$title</title>
+		<description>$desc</description>
+		<link>https://$DOMAIN/$1</link>
+		<guid>https://$DOMAIN/$1</guid>
+		<pubDate>$pubdate</pubDate>
 	</item>
 EOF
 }
@@ -81,20 +81,20 @@ path="$@"
 [ -z "$lang" ] && lang="en-us"
 [ -z "$DOMAIN" ] && DOMAIN="example.com"
 [ -z "$COPY" ] && COPY="$DOMAIN"
-[ -z "$DESC" ] && DESC="This is an example of an RSS feed"
+[ -z "$DESC" ] && DESC="RSS feed for example.com"
 
 cat << EOF
 <?xml version="1.0" encoding="UTF-8" ?>
 <rss version="2.0">
 <channel>
- <title>$TITLE</title>
- <description>$DESC</description>
- <link>https://$DOMAIN</link>
- <language>$lang</language>
- <copyright>$(date +%Y) $COPY All rights reserved</copyright>
- <lastBuildDate>$(builddate)</lastBuildDate>
- <pubDate>$(builddate)</pubDate>
- <ttl>1800</ttl>
+	<title>$TITLE</title>
+	<description>$DESC</description>
+	<link>https://$DOMAIN</link>
+	<language>$lang</language>
+	<copyright>$(date +%Y) $COPY All rights reserved</copyright>
+	<lastBuildDate>$(builddate)</lastBuildDate>
+	<pubDate>$(builddate)</pubDate>
+	<ttl>1800</ttl>
 EOF
 
 for f in $(find $path -type f -print)

@@ -1,13 +1,12 @@
 #!/usr/bin/env sh
 
-
 version() {
-	echo "rssgen v0.0.1"
+	echo "rssgen v0.0.2"
 }
 
 usage() {
 	cat << EOF
-rssgen v0.0.1
+rssgen v0.0.2
 Usage: rssgen [options] [path]
 rssgen creates a RSS feed file for your project.
 Available options are:
@@ -22,7 +21,7 @@ With no path given the default is ..
 Examples:
   rssgen static/
 MIT License
-Copyright (c) 2021 Brian Mayer
+Copyright (c) 2022 Brian Mayer
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
@@ -77,13 +76,12 @@ do
 done
 
 shift $((OPTIND-1))
-path="$1"
+path="$@"
 
 [ -z "$lang" ] && lang="en-us"
 [ -z "$DOMAIN" ] && DOMAIN="example.com"
 [ -z "$COPY" ] && COPY="$DOMAIN"
 [ -z "$DESC" ] && DESC="This is an example of an RSS feed"
-[ -z "$path" ] && path="."
 
 cat << EOF
 <?xml version="1.0" encoding="UTF-8" ?>
@@ -99,9 +97,9 @@ cat << EOF
  <ttl>1800</ttl>
 EOF
 
-for d in $(find $1 -type f -print)
+for f in $(find $path -type f -print)
 do
-	builditem "$d"
+	builditem "${f#./}"
 done
 
 cat << EOF

@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 version() {
-	echo "rssgen v0.0.2"
+	echo "rssgen v0.0.3"
 }
 
 usage() {
@@ -40,19 +40,25 @@ SOFTWARE.
 EOF
 }
 
+[ "$(uname)" == "Linux" ] && ISLINUX=1
+
+[ -z "$DEBUG" ] || echo "[DEBUG] ISLINUX: $ISLINUX"
+
 builddate() {
 	# Mon, 06 Sep 2010 00:01:00 +0000
-	date +"%a, %d %b %Y %T %Z"
+	date +"%a, %d %b %Y %T %z"
 }
 
 builditem() {
-	pubdate="$(grep '<meta name="revised"' $1 | sed -E 's/.*"(.*)">/\1/')"
-	title="$(grep '<title>' $1 | sed -E 's@.*<title>(.*)</title>@\1@')"
-	desc="$(grep '<meta name="description"' $1 | sed -E 's/.*"(.*)">/\1/')"
+	# pubdate="$(grep 'revised"}}' $1 | sed -E 's/.*\}\}(.*)\{\{.*/\1/')"
+	pubdate=""
+	title="$(grep 'title"}}' $1 | sed -E 's/.*\}\}(.*)\{\{.*/\1/')"
+	desc="$(grep 'desc"}}' $1 | sed -E 's/.*\}\}(.*)\{\{.*/\1/')"
+	[ -z "$pubdate" ] && [ $ISLINUX ] && pubdate="$(date -d '@'`stat -c '%Y' $1` +"%a, %d %b %Y %T %z")"
 
 	cat << EOF
 	<item>
-		<title>$title</title>
+		<title>${title:-$(basename $1)}</title>
 		<description>$desc</description>
 		<link>https://$DOMAIN/$1</link>
 		<guid>https://$DOMAIN/$1</guid>
@@ -62,7 +68,7 @@ EOF
 }
 
 # Command line options
-while getopts a:t:l:d:hv name
+while getopts a:c:t:l:d:hv name
 do
 	case $name in
 	a) DOMAIN="${OPTARG}" ;;
@@ -75,13 +81,16 @@ do
 	esac
 done
 
+[ -z "$DEBUG" ] || echo "[DEBUG] OPTIND: $OPTIND"
+
 shift $((OPTIND-1))
 path="$@"
+[ -z "$DEBUG" ] || echo "[DEBUG] path: $path"
 
 [ -z "$lang" ] && lang="en-us"
 [ -z "$DOMAIN" ] && DOMAIN="example.com"
 [ -z "$COPY" ] && COPY="$DOMAIN"
-[ -z "$DESC" ] && DESC="RSS feed for example.com"
+[ -z "$DESC" ] && DESC="RSS feed for $DOMAIN"
 
 cat << EOF
 <?xml version="1.0" encoding="UTF-8" ?>

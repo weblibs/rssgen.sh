@@ -52,8 +52,8 @@ builddate() {
 builditem() {
 	# pubdate="$(grep 'revised"}}' $1 | sed -E 's/.*\}\}(.*)\{\{.*/\1/')"
 	pubdate=""
-	title="$(grep 'title"}}' $1 | sed -E 's/.*\}\}(.*)\{\{.*/\1/')"
-	desc="$(grep 'desc"}}' $1 | sed -E 's/.*\}\}(.*)\{\{.*/\1/')"
+	title="$(grep -m 1 'title"}}' $1 | sed -E 's/.*\}\}(.*)\{\{.*/\1/')"
+	desc="$(grep -m 1 'desc"}}' $1 | sed -E 's/.*\}\}(.*)\{\{.*/\1/')"
 	[ -z "$pubdate" ] && [ $ISLINUX ] && pubdate="$(date -d '@'`stat -c '%Y' $1` +"%a, %d %b %Y %T %z")"
 
 	cat << EOF

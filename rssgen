@@ -14,6 +14,7 @@ Available options are:
   -c 		set copyright owner
   -d 		set the description
   -t 		set title field
+  -s 		use a stylesheet
   -l 		set language field
   -h		show this help
   -v		print the version
@@ -51,9 +52,9 @@ builddate() {
 
 builditem() {
 	# pubdate="$(grep 'revised"}}' $1 | sed -E 's/.*\}\}(.*)\{\{.*/\1/')"
-	pubdate=""
-	title="$(grep -m 1 'title"}}' $1 | sed -E 's/.*\}\}(.*)\{\{.*/\1/')"
-	desc="$(grep -m 1 'desc"}}' $1 | sed -E 's/.*\}\}(.*)\{\{.*/\1/')"
+	pubdate="$(grep '<meta name="\?revised"\?' $1 | sed -E 's/.*"(.*)">/\1/')"
+	title="$(grep -m 1 '<title>' $1 | sed -E 's@.*<title>(.*)</title>@\1@')"
+	desc="$(grep -m 1 '<meta name="\?description"\?' $1 | sed -E 's/.*"(.*)">/\1/')"
 	[ -z "$pubdate" ] && [ $ISLINUX ] && pubdate="$(date -d '@'`stat -c '%Y' $1` +"%a, %d %b %Y %T %z")"
 
 	cat << EOF
@@ -68,13 +69,14 @@ EOF
 }
 
 # Command line options
-while getopts a:c:t:l:d:hv name
+while getopts a:c:t:s:l:d:hv name
 do
 	case $name in
 	a) DOMAIN="${OPTARG}" ;;
 	c) COPY="${OPTARG}" ;;
 	d) DESC="${OPTARG}" ;;
 	t) TITLE="${OPTARG}" ;;
+	s) STYLE="${OPTARG}" ;;
 	l) lang="${OPTARG}" ;;
 	h) usage && exit 0 ;;
 	v) version && exit 0 ;;
@@ -92,8 +94,9 @@ path="$@"
 [ -z "$COPY" ] && COPY="$DOMAIN"
 [ -z "$DESC" ] && DESC="RSS feed for $DOMAIN"
 
+echo '<?xml version="1.0" encoding="UTF-8" ?>'
+[ -z "$STYLE" ] || echo "<?xml-stylesheet href=\"$STYLE\" type=\"text/xsl\" media=\"screen\" ?>"
 cat << EOF
-<?xml version="1.0" encoding="UTF-8" ?>
 <rss version="2.0">
 <channel>
 	<title>$TITLE</title>
@@ -115,3 +118,4 @@ cat << EOF
 </channel>
 </rss>
 EOF
+

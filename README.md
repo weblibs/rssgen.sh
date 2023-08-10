@@ -27,6 +27,7 @@ file and the posts folder.
 - `-c`: set copyright owner
 - `-d`: set the description
 - `-t`: set title field
+- `-s`: set stylesheet
 - `-l`: set language field
 - `-h`: show this help
 - `-v`: print the version
